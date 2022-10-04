@@ -1,4 +1,4 @@
-![alt text](https://github.com/mariuszmalek/war-area-detection/blob/master/assets/image.png?raw=true)
+![alt text](https://github.com/mariuszmalek/war-detection/blob/master/assets/image.png?raw=true)
 
 # War Detection
 
@@ -8,7 +8,7 @@ The bot analyzes data obtained from opensky-network.org in Eastern bloc countrie
 We focus on private planes to catch the planes of the richest residents. When a certain number of inhabitants leave their country and go to safer countries, it is a signal to us about a potential threat.
 
 Then a message is created on Twitter about the threat. Example:
-![alt text](https://github.com/mariuszmalek/war-area-detection/blob/master/assets/twitt.png?raw=true)
+![alt text](https://github.com/mariuszmalek/war-detection/blob/master/assets/twitt.png?raw=true)
 
 
 ## Contributing
