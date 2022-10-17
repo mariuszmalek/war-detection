@@ -12,7 +12,7 @@ def alert(data):
         count = "{0}".format(len(data[0]))
         risk = "LOW"
 
-        text = "[WAR-DETECTION] We detected " + count + " private planes flying from the Eastern Bloc to West. 🚩"
+        text = "[WAR-DETECTION] Detected " + count + " private planes flying from the Eastern Bloc to West. 🚩"
         
         twitter_client = twitter.TwitterClient()
         client = twitter_client.auth()
