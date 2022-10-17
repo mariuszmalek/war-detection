@@ -3,14 +3,19 @@ import json
 
 from clients import twitter
 from clients import opensky
+from clients import google
 
 def watch():
     now = time.datetime.now()
     
     opensky_client = opensky.OpenskyClient()
+    gspread = google.GoogleSpreadsheet()
+
     collection = opensky_client.detect()
     
     # print(collection[0])
+    
+    gspread.post()
     
     if len(collection[0]) > 1:
         alert(collection)
