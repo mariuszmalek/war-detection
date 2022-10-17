@@ -22,7 +22,7 @@ def alert(data):
         count = "{0}".format(num)
         risk = calculate_risk(num)
 
-        text = "[WAR-DETECTION] Detected " + count + " private planes flying from the Eastern Bloc to West. 🚩"
+        text = "[WAR-DETECTION] Detected " + count + " private planes flying from the Eastern Bloc to West. 🚩" + " https://docs.google.com/spreadsheets/d/10ZeOiZoSw1cZEHwoXG1auJ6ovWI5PhyvrtlhUrOalrM"
         
         twitter_client = twitter.TwitterClient()
         client = twitter_client.auth()
