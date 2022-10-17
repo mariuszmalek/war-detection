@@ -28,9 +28,10 @@ try:
     opensky_client = opensky.OpenskyClient()
     collection = opensky_client.detect()
     
-    print(collection[0])
-    # if len(collection[0]) > 1:
-    #     alert(collection)
+    # print(collection[0])
+    
+    if len(collection[0]) > 1:
+        alert(collection)
     
 except Exception as ex:
     print(ex)
