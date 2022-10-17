@@ -16,3 +16,6 @@ I'm open to any help or suggestions, I realize there are many better ways to imp
 
 ## Installation
 You sholud copy .env-clone file and change name to .env
+
+## Storage data
+We store the data in free space in a Google spreadsheet. At this address you will have access to all our aircraft data: https://docs.google.com/spreadsheets/d/10ZeOiZoSw1cZEHwoXG1auJ6ovWI5PhyvrtlhUrOalrM/edit#gid=0
