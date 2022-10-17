@@ -46,7 +46,7 @@ class OpenskyClient():
         lon_min,lat_min = 12,45 #Finland
         lon_max,lat_max = 28,68 #Italy
         
-        url_data = 'https://' + os.getenv('user_name') + ':' + os.getenv('password') + '@opensky-network.org/api/states/all?lamin='+str(lat_min)+'&lomin='+str(lon_min)+'&lamax='+str(lat_max)+'&lomax='+str(lon_max)
+        url_data = 'https://' + os.getenv('USER_NAME') + ':' + os.getenv('USER_PASSWORD') + '@opensky-network.org/api/states/all?lamin='+str(lat_min)+'&lomin='+str(lon_min)+'&lamax='+str(lat_max)+'&lomax='+str(lon_max)
         response = requests.get(url_data).json()
 
         return response['states']

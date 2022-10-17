@@ -9,11 +9,11 @@ class TwitterClient():
     def auth(self):
         # Authenticate to Twitter
         auth = tweepy.OAuthHandler(
-            os.getenv('consumer_key'), os.getenv('consumer_secret')
+            os.getenv('CONSUMER_KEY'), os.getenv('CONSUMER_SECRET')
         )
         
         auth.set_access_token(
-            os.getenv('access_token'), os.getenv('access_secret')
+            os.getenv('ACCESS_TOKEN'), os.getenv('ACCESS_SECRET')
         )
         
         client = tweepy.API(auth)
