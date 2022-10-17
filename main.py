@@ -9,8 +9,9 @@ from clients import twitter
 def alert(data):
     if len(data[0]) > 0 and len(data[1]) > 0:
                 
-        count = "{0}".format(len(data[0]))
-        risk = "LOW"
+        num = len(data[0])
+        count = "{0}".format(num)
+        risk = calculate_risk(num)
 
         text = "[WAR-DETECTION] Detected " + count + " private planes flying from the Eastern Bloc to West. 🚩"
         
@@ -21,6 +22,14 @@ def alert(data):
     else:
         return 0
 
+
+def calculate_risk(count):
+    answear = "LOW"
+    
+    if count >= 500:
+        answear = "HIGH"
+        
+    return answear
   
 try:
     now = time.datetime.now()
