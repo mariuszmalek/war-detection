@@ -1,10 +1,21 @@
+import os
 import tweepy
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 class TwitterClient():
     def auth(self):
         # Authenticate to Twitter
-        auth = tweepy.OAuthHandler(consumer_key, consumer_secret)
-        auth.set_access_token(access_token, access_secret)
+        auth = tweepy.OAuthHandler(
+            os.getenv('consumer_key'), os.getenv('consumer_secret')
+        )
+        
+        auth.set_access_token(
+            os.getenv('access_token'), os.getenv('access_secret')
+        )
+        
         client = tweepy.API(auth)
 
         return client
