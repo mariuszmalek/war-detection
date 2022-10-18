@@ -3,4 +3,4 @@
 [build]
  
   # Default build command.
-  command = "python3 main.py"
+  command = "python main.py"
