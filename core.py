@@ -8,16 +8,23 @@ from clients import google
 def watch():
     now = time.datetime.now()
     
-    opensky_client = opensky.OpenskyClient()
+    # Save data in storage (spreadsheet)
     gspread = google.GoogleSpreadsheet()
-
+    
+    # Get data from opensky
+    opensky_client = opensky.OpenskyClient()
     collection = opensky_client.detect()
     
     num = len(collection[0])
     
-    if num > 1:
-        gspread.post(num)
-        # alert(num)
+    # Get last planes count for calculate risk
+    last_planes_count = gspread.last_planes_count()
+    
+    # Post data to storage spreadsheet
+    gspread.post(num)
+    
+    if str(num) > last_planes_count:
+        alert(num)
     
 def alert(num):
     count = "{0}".format(num)
@@ -25,10 +32,10 @@ def alert(num):
 
     text = "[WAR-DETECTION] Detected " + count + " private planes flying from the Eastern Bloc to West. 🚩" + " https://docs.google.com/spreadsheets/d/10ZeOiZoSw1cZEHwoXG1auJ6ovWI5PhyvrtlhUrOalrM"
     
+    # Send data to Twitter
     twitter_client = twitter.TwitterClient()
     client = twitter_client.auth()
     twitter_client.post(client, text)
-
     
 def calculate_risk(count):
     answear = "LOW"
