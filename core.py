@@ -13,28 +13,22 @@ def watch():
 
     collection = opensky_client.detect()
     
-    # print(collection[0])
+    num = len(collection[0])
     
-    gspread.post()
+    if num > 1:
+        gspread.post(num)
+        # alert(num)
     
-    if len(collection[0]) > 1:
-        alert(collection)
-    
-def alert(data):
-    if len(data[0]) > 0 and len(data[1]) > 0:
-                
-        num = len(data[0])
-        count = "{0}".format(num)
-        risk = calculate_risk(num)
+def alert(num):
+    count = "{0}".format(num)
+    risk = calculate_risk(num)
 
-        text = "[WAR-DETECTION] Detected " + count + " private planes flying from the Eastern Bloc to West. 🚩" + " https://docs.google.com/spreadsheets/d/10ZeOiZoSw1cZEHwoXG1auJ6ovWI5PhyvrtlhUrOalrM"
-        
-        twitter_client = twitter.TwitterClient()
-        client = twitter_client.auth()
-        twitter_client.post(client, text)
-        
-    else:
-        return 0
+    text = "[WAR-DETECTION] Detected " + count + " private planes flying from the Eastern Bloc to West. 🚩" + " https://docs.google.com/spreadsheets/d/10ZeOiZoSw1cZEHwoXG1auJ6ovWI5PhyvrtlhUrOalrM"
+    
+    twitter_client = twitter.TwitterClient()
+    client = twitter_client.auth()
+    twitter_client.post(client, text)
+
     
 def calculate_risk(count):
     answear = "LOW"
