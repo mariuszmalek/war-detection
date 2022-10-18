@@ -1,7 +1,14 @@
 # -*- coding: utf-8 -*-
+import schedule
+import time
 import core
-  
-try:
+
+def job():
+    print("I'm watching planes...")
     core.watch()
-except Exception as ex:
-    print(ex)
+ 
+schedule.every(60).minutes.do(job)
+    
+while True:
+    schedule.run_pending()
+    time.sleep(1)
