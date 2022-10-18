@@ -24,13 +24,13 @@ def watch():
     gspread.post(num)
     
     if str(num) > last_planes_count:
-        alert(num)
+        alert(num, last_planes_count)
     
-def alert(num):
+def alert(num, last_planes_count):
     count = "{0}".format(num)
     risk = calculate_risk(num)
 
-    text = "[WAR-DETECTION] Detected " + count + " private planes flying from the Eastern Bloc to West. 🚩" + " https://docs.google.com/spreadsheets/d/10ZeOiZoSw1cZEHwoXG1auJ6ovWI5PhyvrtlhUrOalrM"
+    text = "[WAR-DETECTION] Detected " + count + " private planes flying from the Eastern Bloc to West. 🚩" + " (Yesterday there were " + last_planes_count + " planes) https://docs.google.com/spreadsheets/d/10ZeOiZoSw1cZEHwoXG1auJ6ovWI5PhyvrtlhUrOalrM"
     
     # Send data to Twitter
     twitter_client = twitter.TwitterClient()
