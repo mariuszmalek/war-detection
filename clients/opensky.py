@@ -41,6 +41,7 @@ class OpenskyClient():
     def fetch(self):
         
         options = []
+        url_data = None
         
         # Cords near war
         lon_min,lat_min = 12,45 #Finland
