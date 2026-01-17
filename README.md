@@ -74,3 +74,18 @@ You can also use [Upstash Redis](https://upstash.com/) which offers a generous f
 1. Create a database on Upstash.
 2. Get the `REDIS_URL`.
 3. Set `REDIS_URL` in your Vercel Environment Variables.
+
+## Deployment Method 2: GitHub Actions (Completely Free & Recommended)
+If you want to run this bot without any hosting costs and bypass Vercel's Cron limitations:
+
+1. Push this code to a **GitHub Repository**.
+2. Go to **Settings > Secrets and variables > Actions** in your repo.
+3. Add the following **Repository secrets**:
+   - `CONSUMER_KEY`, `CONSUMER_SECRET`, `ACCESS_TOKEN`, `ACCESS_SECRET` (Twitter)
+   - `OPENSKY_USERNAME`, `OPENSKY_PASSWORD` (OpenSky - Optional)
+   - `GOOGLE_SHEETS_CREDENTIALS` (Base64 string) OR `REDIS_URL` (Upstash)
+   
+   **Important:** You MUST use Google Sheets or Redis for storage because GitHub Actions resets the filesystem on every run.
+
+4. The bot is already configured (in `.github/workflows/scheduler.yml`) to run every ~5 minutes automatically.
+5. You can check the "Actions" tab in GitHub to see the logs.

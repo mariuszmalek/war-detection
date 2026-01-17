@@ -1,0 +1,43 @@
+name: War Detection Bot
+
+on:
+  schedule:
+    # Run every 5 minutes (approximate, GitHub Actions isn't perfectly precise)
+    - cron: '*/5 * * * *'
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Run War Detection Scan
+        env:
+          # Twitter/X Credentials
+          CONSUMER_KEY: ${{ secrets.CONSUMER_KEY }}
+          CONSUMER_SECRET: ${{ secrets.CONSUMER_SECRET }}
+          ACCESS_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+          ACCESS_SECRET: ${{ secrets.ACCESS_SECRET }}
+          
+          # OpenSky Credentials (Optional but recommended)
+          USER_NAME: ${{ secrets.OPENSKY_USERNAME }}
+          USER_PASSWORD: ${{ secrets.OPENSKY_PASSWORD }}
+          
+          # Database (Upstash Redis or Google Sheets)
+          # REDIS_URL: ${{ secrets.REDIS_URL }}
+          # GOOGLE_SHEETS_CREDENTIALS: ${{ secrets.GOOGLE_SHEETS_CREDENTIALS }}
+          
+          # Fallback to local file if no DB is provided (but won't persist across runs on GitHub Actions)
+          # WARNING: For GitHub Actions to remember history, you MUST use Redis or Google Sheets.
+          
+        run: python run_once.py
