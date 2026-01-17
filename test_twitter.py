@@ -24,6 +24,20 @@ def test_integration():
         user = client.client.get_me()
         if user.data:
             print(f"✅ Authentication successful! Logged in as: {user.data.name} (@{user.data.username})")
+            
+            # Send a real test tweet
+            import datetime
+            timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            tweet_text = f"Test WarDetection Bot Integration\nTimestamp: {timestamp}\n✅ System Online"
+            
+            print(f"Attempting to post: \n{tweet_text}")
+            response = client.post(tweet_text)
+            
+            if response and response.data:
+                print(f"✅ Tweet sent successfully! ID: {response.data['id']}")
+            else:
+                print("❌ Tweet failed (no response data).")
+                
         else:
             print("❌ Authentication failed (get_me returned no data).")
             
