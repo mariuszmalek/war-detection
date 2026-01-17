@@ -2,8 +2,11 @@ import datetime
 import json
 import os
 import math
+import base64
 import reverse_geocoder as rg
 import redis
+import gspread
+from google.oauth2.service_account import Credentials
 from clients import twitter
 from clients import opensky
 
@@ -11,6 +14,7 @@ from clients import opensky
 HISTORY_FILE = "flight_history.json"
 ALERT_THRESHOLD = 5  # Number of flights to trigger alert
 TIME_WINDOW_HOURS = 48
+GSHEET_NAME = "WarDetection_History"
 
 # Safe Countries (ISO Codes) for reference, though we track departures mainly
 SAFE_COUNTRY_CODES = ["CH", "AE", "GB", "US", "SG"] 
@@ -25,6 +29,27 @@ def get_redis_client():
         except Exception as e:
             print(f"Failed to connect to Redis: {e}")
     return None
+
+def get_gsheet_client():
+    creds_json = os.environ.get("GOOGLE_SHEETS_CREDENTIALS")
+    if not creds_json:
+        return None
+    
+    try:
+        # Handle base64 encoded credentials (common for env vars)
+        try:
+            creds_dict = json.loads(base64.b64decode(creds_json).decode())
+        except:
+            # Fallback to plain json string
+            creds_dict = json.loads(creds_json)
+            
+        scopes = ['https://www.googleapis.com/auth/spreadsheets']
+        creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
+        client = gspread.authorize(creds)
+        return client
+    except Exception as e:
+        print(f"Failed to connect to Google Sheets: {e}")
+        return None
 
 def watch():
     print(f"[{datetime.datetime.now()}] Starting GLOBAL scan...")
@@ -109,7 +134,7 @@ def watch():
                 send_alert(count, country, new_events_in_country)
 
 def load_history():
-    # Try Redis first
+    # 1. Try Redis
     r = get_redis_client()
     if r:
         try:
@@ -117,12 +142,31 @@ def load_history():
             if data:
                 print("Loaded history from Redis.")
                 return json.loads(data)
-            print("No history found in Redis.")
-            return []
         except Exception as e:
             print(f"Error reading from Redis: {e}")
-            # Fallback to local file if Redis fails
 
+    # 2. Try Google Sheets
+    gc = get_gsheet_client()
+    if gc:
+        try:
+            # Open sheet or create if not exists
+            try:
+                sh = gc.open(GSHEET_NAME)
+                worksheet = sh.sheet1
+                # Assume data is in first cell as JSON string for simplicity
+                # Or row by row. For <1000 items, JSON string in cell A1 is simplest hack.
+                # But cells have 50k char limit.
+                # Better: read all rows.
+                records = worksheet.get_all_records()
+                print(f"Loaded {len(records)} records from Google Sheets.")
+                return records
+            except gspread.exceptions.SpreadsheetNotFound:
+                print("Spreadsheet not found, starting fresh.")
+                return []
+        except Exception as e:
+            print(f"Error reading from Google Sheets: {e}")
+
+    # 3. Fallback to local file
     if os.path.exists(HISTORY_FILE):
         try:
             with open(HISTORY_FILE, 'r') as f:
@@ -132,17 +176,41 @@ def load_history():
     return []
 
 def save_history(history):
-    # Try Redis first
+    # 1. Try Redis
     r = get_redis_client()
     if r:
         try:
             r.set("flight_history", json.dumps(history))
             print("Saved history to Redis.")
-            return
         except Exception as e:
             print(f"Error writing to Redis: {e}")
-            # Fallback to local file
+    
+    # 2. Try Google Sheets
+    gc = get_gsheet_client()
+    if gc:
+        try:
+            try:
+                sh = gc.open(GSHEET_NAME)
+            except gspread.exceptions.SpreadsheetNotFound:
+                sh = gc.create(GSHEET_NAME)
+                # Share with user email if possible, otherwise it's private to service account
+                print(f"Created new spreadsheet: {GSHEET_NAME}")
 
+            worksheet = sh.sheet1
+            # Clear and write all (inefficient but safe for small data)
+            worksheet.clear()
+            if history:
+                # Write headers
+                headers = list(history[0].keys())
+                worksheet.append_row(headers)
+                # Write rows
+                rows = [list(event.values()) for event in history]
+                worksheet.append_rows(rows)
+            print("Saved history to Google Sheets.")
+        except Exception as e:
+            print(f"Error writing to Google Sheets: {e}")
+
+    # 3. Always save to local file as backup/cache
     with open(HISTORY_FILE, 'w') as f:
         json.dump(history, f)
 

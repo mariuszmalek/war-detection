@@ -54,3 +54,23 @@ To enable persistent storage, this project supports **Vercel KV (Redis)**.
 3. Bind it to your project.
 4. Vercel will automatically set the `KV_URL` environment variable.
 5. The bot will now automatically use Redis for storing flight history.
+
+### Alternative: Google Sheets (Free)
+If you prefer a completely free alternative to Redis, you can use **Google Sheets**.
+
+1. Create a project in [Google Cloud Console](https://console.cloud.google.com/).
+2. Enable **Google Sheets API** and **Google Drive API**.
+3. Create a **Service Account** and download the JSON key.
+4. Encode the JSON key to Base64 (to fit in a single line):
+   ```bash
+   base64 -i your-key.json
+   ```
+5. Set environment variable `GOOGLE_SHEETS_CREDENTIALS` with the Base64 string.
+6. The bot will create a sheet named `WarDetection_History` automatically.
+   *(Note: You might need to share the sheet with your personal email to view it, as it is created by the service account).*
+
+### Alternative: Upstash Redis (Free Tier)
+You can also use [Upstash Redis](https://upstash.com/) which offers a generous free tier.
+1. Create a database on Upstash.
+2. Get the `REDIS_URL`.
+3. Set `REDIS_URL` in your Vercel Environment Variables.

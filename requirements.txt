@@ -5,3 +5,5 @@ tweepy==4.10.1
 reverse_geocoder==1.5.1
 Flask==2.2.5
 redis==4.5.4
+gspread==5.7.2
+google-auth==2.16.2
