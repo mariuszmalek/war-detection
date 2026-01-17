@@ -5,6 +5,9 @@ from unittest.mock import MagicMock
 sys.modules["tweepy"] = MagicMock()
 sys.modules["schedule"] = MagicMock()
 sys.modules["reverse_geocoder"] = MagicMock()
+sys.modules["redis"] = MagicMock()
+sys.modules["gspread"] = MagicMock()
+sys.modules["google.oauth2.service_account"] = MagicMock()
 
 import unittest
 from unittest.mock import patch
@@ -15,6 +18,8 @@ import json
 class TestCore(unittest.TestCase):
     
     def setUp(self):
+        # Force local storage by mocking env vars or client getters
+        # But patching them in test methods is cleaner.
         if os.path.exists("flight_history.json"):
             os.remove("flight_history.json")
 
@@ -22,10 +27,12 @@ class TestCore(unittest.TestCase):
         if os.path.exists("flight_history.json"):
             os.remove("flight_history.json")
 
+    @patch('core.get_gsheet_client', return_value=None)
+    @patch('core.get_redis_client', return_value=None)
     @patch('clients.opensky.OpenskyClient')
     @patch('clients.twitter.TwitterClient')
     @patch('reverse_geocoder.search')
-    def test_watch_global_alert(self, mock_rg, mock_twitter, mock_opensky):
+    def test_watch_global_alert(self, mock_rg, mock_twitter, mock_opensky, mock_redis, mock_gsheet):
         # Setup: 6 planes in Poland (PL)
         mock_instance = mock_opensky.return_value
         planes = []
@@ -66,10 +73,12 @@ class TestCore(unittest.TestCase):
         self.assertIn("PL", args[0]) # Country code should be in the message
         self.assertIn("Global Anomaly", args[0])
 
+    @patch('core.get_gsheet_client', return_value=None)
+    @patch('core.get_redis_client', return_value=None)
     @patch('clients.opensky.OpenskyClient')
     @patch('clients.twitter.TwitterClient')
     @patch('reverse_geocoder.search')
-    def test_watch_mixed_countries_no_alert(self, mock_rg, mock_twitter, mock_opensky):
+    def test_watch_mixed_countries_no_alert(self, mock_rg, mock_twitter, mock_opensky, mock_redis, mock_gsheet):
         # Setup: 3 planes in PL, 3 in US. Threshold is 5 per country.
         mock_instance = mock_opensky.return_value
         planes = []
