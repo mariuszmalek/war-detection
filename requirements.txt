@@ -4,3 +4,4 @@ schedule==1.1.0
 tweepy==4.10.1
 reverse_geocoder==1.5.1
 Flask==2.2.5
+redis==4.5.4

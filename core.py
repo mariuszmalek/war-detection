@@ -3,6 +3,7 @@ import json
 import os
 import math
 import reverse_geocoder as rg
+import redis
 from clients import twitter
 from clients import opensky
 
@@ -13,6 +14,17 @@ TIME_WINDOW_HOURS = 48
 
 # Safe Countries (ISO Codes) for reference, though we track departures mainly
 SAFE_COUNTRY_CODES = ["CH", "AE", "GB", "US", "SG"] 
+
+def get_redis_client():
+    # Vercel KV uses KV_URL, standard Redis uses REDIS_URL
+    redis_url = os.environ.get("KV_URL") or os.environ.get("REDIS_URL")
+    if redis_url:
+        try:
+            # Use SSL if using rediss:// (Vercel KV usually does)
+            return redis.from_url(redis_url, decode_responses=True)
+        except Exception as e:
+            print(f"Failed to connect to Redis: {e}")
+    return None
 
 def watch():
     print(f"[{datetime.datetime.now()}] Starting GLOBAL scan...")
@@ -97,6 +109,20 @@ def watch():
                 send_alert(count, country, new_events_in_country)
 
 def load_history():
+    # Try Redis first
+    r = get_redis_client()
+    if r:
+        try:
+            data = r.get("flight_history")
+            if data:
+                print("Loaded history from Redis.")
+                return json.loads(data)
+            print("No history found in Redis.")
+            return []
+        except Exception as e:
+            print(f"Error reading from Redis: {e}")
+            # Fallback to local file if Redis fails
+
     if os.path.exists(HISTORY_FILE):
         try:
             with open(HISTORY_FILE, 'r') as f:
@@ -106,6 +132,17 @@ def load_history():
     return []
 
 def save_history(history):
+    # Try Redis first
+    r = get_redis_client()
+    if r:
+        try:
+            r.set("flight_history", json.dumps(history))
+            print("Saved history to Redis.")
+            return
+        except Exception as e:
+            print(f"Error writing to Redis: {e}")
+            # Fallback to local file
+
     with open(HISTORY_FILE, 'w') as f:
         json.dump(history, f)
 

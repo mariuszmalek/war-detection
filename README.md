@@ -45,5 +45,12 @@ This project is configured for Vercel with Cron Jobs.
 4. The bot will run automatically every 5 minutes via Vercel Cron.
 
 **Note on Storage:**
-By default, this bot uses a local `flight_history.json` file. On serverless platforms like Vercel, this file is **ephemeral** (it will be lost between runs).
-For production use on Vercel, you should implement a persistent storage adapter (e.g., Vercel KV, MongoDB, or Google Sheets).
+By default, this bot uses a local `flight_history.json` file. On serverless platforms like Vercel, this file is **ephemeral**.
+To enable persistent storage, this project supports **Vercel KV (Redis)**.
+
+### Setting up Vercel KV
+1. Go to your Vercel Project Dashboard > Storage.
+2. Create a new **Vercel KV** database.
+3. Bind it to your project.
+4. Vercel will automatically set the `KV_URL` environment variable.
+5. The bot will now automatically use Redis for storing flight history.
