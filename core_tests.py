@@ -1,11 +1,10 @@
 import sys
 from unittest.mock import MagicMock
 
-# Mock tweepy before importing clients.twitter
+# Mock modules
 sys.modules["tweepy"] = MagicMock()
 sys.modules["schedule"] = MagicMock()
-# gspread is not used in core anymore, but if it were:
-sys.modules["gspread"] = MagicMock()
+sys.modules["reverse_geocoder"] = MagicMock()
 
 import unittest
 from unittest.mock import patch
@@ -16,7 +15,6 @@ import json
 class TestCore(unittest.TestCase):
     
     def setUp(self):
-        # Clean up history file before tests
         if os.path.exists("flight_history.json"):
             os.remove("flight_history.json")
 
@@ -24,77 +22,89 @@ class TestCore(unittest.TestCase):
         if os.path.exists("flight_history.json"):
             os.remove("flight_history.json")
 
-    def test_get_origin_country(self):
-        # Warsaw, Poland
-        self.assertEqual(core.get_origin_country(52.2297, 21.0122), "Poland")
-        # Prague, Czechia
-        self.assertEqual(core.get_origin_country(50.0755, 14.4378), "Czechia")
-        # Berlin, Germany (Should be None as it's outside defined regions)
-        self.assertIsNone(core.get_origin_country(52.5200, 13.4050))
-        
     @patch('clients.opensky.OpenskyClient')
     @patch('clients.twitter.TwitterClient')
-    def test_watch_alert_trigger(self, mock_twitter, mock_opensky):
-        # Setup Mock OpenSky to return 6 private jets exiting Poland
-        # Needs to exceed ALERT_THRESHOLD (5)
-        
+    @patch('reverse_geocoder.search')
+    def test_watch_global_alert(self, mock_rg, mock_twitter, mock_opensky):
+        # Setup: 6 planes in Poland (PL)
         mock_instance = mock_opensky.return_value
-        
-        # Create 6 planes leaving Poland heading West (Track 270)
         planes = []
         for i in range(6):
             planes.append({
-                "icao24": f"a{i}b{i}c{i}",
+                "icao24": f"pl{i}",
                 "callsign": f"PVT{i}",
-                "origin_country": "Poland",
-                "latitude": 52.0,
-                "longitude": 20.0,
-                "velocity": 200, # moving
-                "true_track": 270, # West
+                "origin_country": "Poland", # OpenSky field, ignored by our new logic
+                "latitude": 52.0 + (i*0.01),
+                "longitude": 21.0,
+                "velocity": 200,
+                "true_track": 270,
                 "geo_altitude": 10000,
                 "on_ground": False
             })
-            
+        
         mock_instance.detect.return_value = planes
         
-        # Run watch
+        # Mock Reverse Geocoder response
+        # It returns a list of dicts, one per coordinate
+        # We expect 6 results, all Poland
+        mock_rg.return_value = [{'cc': 'PL', 'admin1': 'Masovian Voivodeship', 'name': 'Warsaw'}] * 6
+        
+        # Run
         core.watch()
         
-        # Check if history file was created and has 6 entries
+        # Verify
         with open("flight_history.json", 'r') as f:
             history = json.load(f)
         self.assertEqual(len(history), 6)
         
-        # Check if Twitter alert was sent
+        # Check Alert
         mock_twitter_instance = mock_twitter.return_value
         self.assertTrue(mock_twitter_instance.post.called)
         
+        # Check Alert Content
+        args, _ = mock_twitter_instance.post.call_args
+        self.assertIn("PL", args[0]) # Country code should be in the message
+        self.assertIn("Global Anomaly", args[0])
+
     @patch('clients.opensky.OpenskyClient')
     @patch('clients.twitter.TwitterClient')
-    def test_watch_no_alert(self, mock_twitter, mock_opensky):
-        # Setup Mock OpenSky to return 1 private jet
+    @patch('reverse_geocoder.search')
+    def test_watch_mixed_countries_no_alert(self, mock_rg, mock_twitter, mock_opensky):
+        # Setup: 3 planes in PL, 3 in US. Threshold is 5 per country.
         mock_instance = mock_opensky.return_value
-        planes = [{
-            "icao24": "aabbcc",
-            "callsign": "PVT1",
-            "origin_country": "Poland",
-            "latitude": 52.0,
-            "longitude": 20.0,
-            "velocity": 200,
-            "true_track": 270,
-            "geo_altitude": 10000,
-            "on_ground": False
-        }]
+        planes = []
+        # 3 PL
+        for i in range(3):
+            planes.append({
+                "icao24": f"pl{i}",
+                "callsign": f"PVT{i}",
+                "latitude": 52.0,
+                "longitude": 21.0,
+                "velocity": 200, "true_track": 0, "geo_altitude": 100, "on_ground": False
+            })
+        # 3 US
+        for i in range(3):
+            planes.append({
+                "icao24": f"us{i}",
+                "callsign": f"PVT_US{i}",
+                "latitude": 40.0,
+                "longitude": -74.0,
+                "velocity": 200, "true_track": 0, "geo_altitude": 100, "on_ground": False
+            })
+            
         mock_instance.detect.return_value = planes
+        
+        # Mock RG: first 3 PL, next 3 US
+        mock_rg.return_value = [{'cc': 'PL'}] * 3 + [{'cc': 'US'}] * 3
         
         core.watch()
         
-        # Check history
+        # History should have 6 items
         with open("flight_history.json", 'r') as f:
             history = json.load(f)
-        self.assertEqual(len(history), 1)
+        self.assertEqual(len(history), 6)
         
-        # Check NO Twitter alert
+        # Alert? NO. Max count per country is 3, Threshold is 5.
         mock_twitter_instance = mock_twitter.return_value
         self.assertFalse(mock_twitter_instance.post.called)
 

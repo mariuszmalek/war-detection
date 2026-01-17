@@ -1,11 +1,13 @@
 ![alt text](https://github.com/mariuszmalek/war-detection/blob/master/assets/image.png?raw=true)
 
-# War Detection
+# War Detection (Global Edition)
 
 ## Information
-The bot analyzes data obtained from opensky-network.org in Eastern bloc countries (due to the conflict in Ukraine and the potential risk of war elsewhere). An analysis is carried out on the basis of the obtained data.
+The bot analyzes global flight data obtained from opensky-network.org to detect unusual movements of private jets.
 
-We focus on private planes to catch the planes of the richest residents. When a certain number of inhabitants leave their country and go to safer countries, it is a signal to us about a potential threat.
+We focus on private planes (Business Jets, Ultra Long Range) to identify potential mass exodus events of high-net-worth individuals. When a significant cluster of private flights departs from a specific country within a short time window, it triggers an anomaly alert.
+
+This system monitors the **whole world** using reverse geocoding to identify the origin of flights.
 
 Then a message is created on Twitter about the threat. Example:
 ![alt text](https://github.com/mariuszmalek/war-detection/blob/master/assets/twitt.png?raw=true)
@@ -15,7 +17,12 @@ Then a message is created on Twitter about the threat. Example:
 I'm open to any help or suggestions, I realize there are many better ways to improve this program and better ways to get this program to work properly.
 
 ## Installation
-You sholud copy .env-clone file and change name to .env
-
-## Storage data
-We store the data in free space in a Google spreadsheet. At this address you will have access to all our aircraft data: https://docs.google.com/spreadsheets/d/10ZeOiZoSw1cZEHwoXG1auJ6ovWI5PhyvrtlhUrOalrM/edit#gid=0
+1. Install dependencies:
+   ```
+   pip install -r requirements.txt
+   ```
+2. Copy `.env-clone` to `.env` and fill in your OpenSky and Twitter credentials.
+3. Run the bot:
+   ```
+   python main.py
+   ```

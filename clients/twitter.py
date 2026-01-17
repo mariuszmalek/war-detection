@@ -6,25 +6,27 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class TwitterClient():
-    def auth(self):
-        # Authenticate to Twitter
-        auth = tweepy.OAuthHandler(
-            os.getenv('CONSUMER_KEY'), os.getenv('CONSUMER_SECRET')
+    def __init__(self):
+        # Authenticate to Twitter using API v2 (Client)
+        # This requires Consumer Keys and Access Tokens (OAuth 1.0a User Context)
+        # or Bearer Token (OAuth 2.0 App-Only) - for posting we usually need User Context.
+        self.client = tweepy.Client(
+            consumer_key=os.getenv('CONSUMER_KEY'),
+            consumer_secret=os.getenv('CONSUMER_SECRET'),
+            access_token=os.getenv('ACCESS_TOKEN'),
+            access_token_secret=os.getenv('ACCESS_SECRET')
         )
-        
-        auth.set_access_token(
-            os.getenv('ACCESS_TOKEN'), os.getenv('ACCESS_SECRET')
-        )
-        
-        client = tweepy.API(auth)
-
-        return client
     
-    
-    def post(self, client, data):
-        if not client or not data:
-            return 0
+    def post(self, text):
+        if not text:
+            print("No text to post.")
+            return None
         
-        # Post twitt
-        client.update_status(data)
-        print("Post was sended to Twitter")
+        try:
+            # Post tweet using v2 API
+            response = self.client.create_tweet(text=text)
+            print(f"Post sent to Twitter. ID: {response.data['id']}")
+            return response
+        except Exception as e:
+            print(f"Error posting to Twitter: {e}")
+            return None
