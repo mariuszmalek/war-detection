@@ -82,7 +82,9 @@ def watch():
         # Given "Global" scope, we assume any spike is interesting.
         
         # Basic check: Must be airborne and moving
-        is_flying = not plane["on_ground"] and plane["velocity"] > 50
+        # Handle cases where velocity might be None
+        velocity = plane["velocity"] if plane["velocity"] is not None else 0
+        is_flying = not plane["on_ground"] and velocity > 50
         
         if is_flying and country_code != 'Unknown':
             event = {
